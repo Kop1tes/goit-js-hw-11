@@ -19,9 +19,10 @@ body {
   justify-content: center;
   align-items: center;
   background-color: #223eff;
-  position: fixed;
+  /* position: fixed; */
   width: 100%;
   z-index: 100;
+  margin-bottom: 20px;
 }
 
 input {
@@ -40,6 +41,31 @@ input {
   border: 0px;
   background-color: rgb(240, 240, 240);
   cursor: pointer;
+}
+
+.loadmore {
+  display: flex;
+  justify-content: center;
+}
+
+.load-more {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 150px;
+  height: 30px;
+  background-color: #223eff;
+  color: #fff;
+  border: none;
+  font-size: 18px;
+  border-radius: 2px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.load-more:hover,
+.load-more:focus {
+  background-color: #304aff;
 }
 
 .visually-hidden {
