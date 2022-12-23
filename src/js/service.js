@@ -24,6 +24,7 @@ export default class NewsApiService {
         const { data } = await axios(`?${options}`);
         this.page += 1;
         return data;
+        
     }
 
     resetPage() {

@@ -79,6 +79,7 @@ function renderPictures(hits) {
             }
     ).join('');
     
+    
     refs.gallery.insertAdjacentHTML('beforeend', images);
 }
 

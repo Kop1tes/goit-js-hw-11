@@ -12,6 +12,7 @@ export default class LoadMoreBtn {
 
     show() {
         this.loadMoreBtnRef.style.display = 'block';
+        
     }
 
     loading() {
