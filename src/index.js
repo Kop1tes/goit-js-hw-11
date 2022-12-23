@@ -1,43 +1,100 @@
 import './css/styles.css';
-import SimpleLightbox from 'simplelightbox';
-import Notiflix from 'notiflix';
-import 'simplelightbox/dist/simple-lightbox.min.css';
-
-const axios = require('axios').default;
+import {Loading, Notify} from 'notiflix';
+import NewsApiService from './js/service';
+import LoadMoreBtn from './js/load-more-btn';
+import SimpleLightbox from "simplelightbox";
+import "simplelightbox/dist/simple-lightbox.min.css";
 
 const refs = {
-    searchForm: document.querySelector('.search-form'),
-    input: document.querySelector('.search-form__input'),
-    btnSubmit: document.querySelector('.search-form__button'),
-    btnLoadMore: document.querySelector('.load-more'),
+    searchForm: document.querySelector('#search-form'),
     gallery: document.querySelector('.gallery'),
+    btnSubmit: document.querySelector('.search_button'),
+    btnLoadMore: document.querySelector('.load-more'),
 }
 
-let page = 1;
-let query = '';
-const API_KEY = '32216625-6f7cdca1cd8ffe8b3abf6c6b4';
-const BASE_URL = 'https://pixabay.com/api/';
+refs.searchForm.addEventListener('submit', onSearchSubmit);
 
-refs.searchForm.addEventListener('submit', formSubmit);
-refs.btnLoadMore.addEventListener('click', onLoadMore)
-// refs.gallery.addEventListener('click', onClick);
+const newsApiService = new NewsApiService();
+const loadMoreBtn = new LoadMoreBtn('load-more', onLoadMoreBtn);
+const simpleLightBox = new SimpleLightbox('.gallery a', { captionDelay: 250 });
 
-
-function formSubmit(e) {
+async function onSearchSubmit(e) {
     e.preventDefault();
 
-    const query = e.currentTarget.elements.searchQuery.value.trim();
-    if (query === "") {
+    newsApiService.query = e.currentTarget.elements.searchQuery.value.trim();
+
+    if (newsApiService.query === '') {
+        Notify.warning('Enter something');
         return;
     }
 
-    const url = `${BASE_URL}?key=${API_KEY}&q=${query}&image_type=photo&orientation=horizontal&safesearch=true`;
-
-    fetch(url).then(r => r.json()).then(console.log);
+    newsApiService.resetPage();
+    
+    try {
+        const { hits, totalHits } = await newsApiService.fetchApi();
+        if (totalHits === 0) {
+            Notify.warning('Sorry, there are no images matching your search query. Please try again.');
+            refs.gallery.innerHTML = '';
+            loadMoreBtn.hide();
+            return;
+        }
+        Notify.success(`Hooray! We found ${totalHits} images.`);
+        renderPictures(hits);
+        simpleLightBox.refresh();
+        loadMoreBtn.show();
+    } catch (error) {
+        Notify.failure('Something is wrong');
+    }
 }
 
-function onLoadMore() {  
-    const url = `${BASE_URL}?key=${API_KEY}&q=${query}&image_type=photo&orientation=horizontal&safesearch=true`;
-
-    fetch(url).then(r => r.json()).then(console.log);
+function renderPictures(hits) {
+    const images = hits
+        .map(
+            ({
+                webformatURL,
+                largeImageURL,
+                tags,
+                likes,
+                views,
+                comments,
+                downloads,
+            }) => {
+                return `<div class="photo-card">
+                    <a href="${largeImageURL}"><img src="${webformatURL}" alt="${tags}" loading="lazy" /></a>
+                    <div class="info">
+                        <p class="info-item">
+                            <b>Likes: </b>${likes}
+                        </p>
+                        <p class="info-item">
+                            <b>Views: </b>${views}
+                        </p>
+                        <p class="info-item">
+                            <b>Comments: </b>${comments}
+                        </p>
+                        <p class="info-item">
+                            <b>Downloads: </b>${downloads}
+                        </p>
+                    </div>
+                </div>`
+            }
+    ).join('');
+    
+    refs.gallery.insertAdjacentHTML('beforeend', images);
 }
+
+async function onLoadMoreBtn() {
+    loadMoreBtn.loading();
+    try {
+        const { hits } = await newsApiService.fetchApi();
+        renderPictures(hits);
+        simpleLightBox.refresh();
+        loadMoreBtn.endLoading();
+        if (hits.length < 40) {
+            loadMoreBtn.hide();
+            Notify.info("We're sorry, but you've reached the end of search results.");
+        }
+    } catch (error) {
+        Notify.failure('Something is wrong');
+    }
+}
+    

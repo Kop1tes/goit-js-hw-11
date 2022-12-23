@@ -32,6 +32,13 @@ input {
   border-color: transparent;
 }
 
+img {
+  max-width: 100%;
+  display: block;
+  height: auto;
+  object-fit: cover;
+}
+
 .search-form button {
   font-size: 20px;
   padding: 5px;
@@ -43,13 +50,7 @@ input {
   cursor: pointer;
 }
 
-.loadmore {
-  display: flex;
-  justify-content: center;
-}
-
 .load-more {
-  display: flex;
   justify-content: center;
   align-items: center;
   width: 150px;
@@ -61,11 +62,29 @@ input {
   border-radius: 2px;
   font-weight: bold;
   cursor: pointer;
+  margin-bottom: 10px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .load-more:hover,
 .load-more:focus {
   background-color: #304aff;
+}
+
+.gallery {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.photo-card {
+  flex-basis: calc((100% - 60px) / 4);
+}
+
+.info {
+  display: flex;
+  gap: 10px;
 }
 
 .visually-hidden {
