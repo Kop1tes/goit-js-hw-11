@@ -39,6 +39,7 @@ async function onSearchSubmit(e) {
             return;
         }
         Notify.success(`Hooray! We found ${totalHits} images.`);
+        refs.gallery.innerHTML = '';
         renderPictures(hits);
         simpleLightBox.refresh();
         loadMoreBtn.show();
