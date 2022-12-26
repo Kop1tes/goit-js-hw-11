@@ -1,66 +1,66 @@
-import './css/styles.css';
-import {Loading, Notify} from 'notiflix';
-import NewsApiService from './js/service';
-import LoadMoreBtn from './js/load-more-btn';
-import SimpleLightbox from "simplelightbox";
-import "simplelightbox/dist/simple-lightbox.min.css";
+import './css/styles.css';  // подключение css файла
+import {Loading, Notify} from 'notiflix'; // подключение Notify библиотеки (оповещения)
+import NewsApiService from './js/service'; // подключение файла где подключен пубичный сервер
+import LoadMoreBtn from './js/load-more-btn'; // подключение кнопки "Load more..."
+import SimpleLightbox from "simplelightbox"; // подключение библиотеки для галлереи
+import "simplelightbox/dist/simple-lightbox.min.css"; // подключение оформаление библиотеки для галлереи
 
-const refs = {
-    searchForm: document.querySelector('#search-form'),
-    gallery: document.querySelector('.gallery'),
-    btnSubmit: document.querySelector('.search_button'),
-    btnLoadMore: document.querySelector('.load-more'),
+const refs = { // выбор элементов которые будем использовать
+    searchForm: document.querySelector('#search-form'), // выбор инпута для ввода слова
+    gallery: document.querySelector('.gallery'), // выбор отдела под галерею
+    btnSubmit: document.querySelector('.search_button'), // выбор кнопки для поиска
+    btnLoadMore: document.querySelector('.load-more'), // выбор кнопки для Load more...
 }
 
-refs.searchForm.addEventListener('submit', onSearchSubmit);
+refs.searchForm.addEventListener('submit', onSearchSubmit); // добавляем слушателя для инпута
 
-const newsApiService = new NewsApiService();
-const loadMoreBtn = new LoadMoreBtn('load-more', onLoadMoreBtn);
-const simpleLightBox = new SimpleLightbox('.gallery a', { captionDelay: 250 });
+const newsApiService = new NewsApiService(); // вызов класса для этого файла с файла service.js
+const loadMoreBtn = new LoadMoreBtn('load-more', onLoadMoreBtn); // вызов класса для кнопки "Load more..." с функцией
+const simpleLightBox = new SimpleLightbox('.gallery a', { captionDelay: 250 }); // вызов класса для галлереи с дилеем 250ms (из настроек документации) 
 
-async function onSearchSubmit(e) {
-    e.preventDefault();
+async function onSearchSubmit(e) { // создаем асинхронную функцию для инпута
+    e.preventDefault(); // для отключения перезагрузки страницы после нажатия на клавишу
 
-    newsApiService.query = e.currentTarget.elements.searchQuery.value.trim();
+    newsApiService.query = e.currentTarget.elements.searchQuery.value.trim(); // достаем слово которое ввели в инпут и с помощью trim() убираем пробелы
 
-    if (newsApiService.query === '') {
-        Notify.warning('Enter something');
-        return;
+    if (newsApiService.query === '') { // создаем условие, если инпут пустой то вылезает оповещение с ошибкой
+        Notify.warning('Enter something');  // оповещение ошибки от Notify с текстом
+        return; // возвращаем функцию для повтора
     }
 
-    newsApiService.resetPage();
+    newsApiService.resetPage(); // вызываем функцию сброса страницы из файла service.js
     
-    try {
-        const { hits, totalHits } = await newsApiService.fetchApi();
-        if (totalHits === 0) {
-            Notify.warning('Sorry, there are no images matching your search query. Please try again.');
-            refs.gallery.innerHTML = '';
-            loadMoreBtn.hide();
-            return;
+    try { // проверка на ошибку
+        const { hits, totalHits } = await newsApiService.fetchApi(); // разкладываем данные чтобы получить только hits(кол-во пришедших картинок) и totalHits(общее количество картинок), await для того чтобы ждать пока эта функция выполнится
+        if (totalHits === 0) { // создаем условие, если общее количество картинок равно 0(то есть по запросу нет ничего), то вылезает оповещение с ошибкой
+            Notify.warning('Sorry, there are no images matching your search query. Please try again.'); // оповещение ошибки с текстом
+            refs.gallery.innerHTML = ''; // очищение инпута с помощью innerHTML после неудачного запроса
+            loadMoreBtn.hide(); // прячем кнопку снова после неудачного запроса
+            return; // возвращаем функцию для повтора
         }
-        Notify.success(`Hooray! We found ${totalHits} images.`);
-        refs.gallery.innerHTML = '';
-        renderPictures(hits);
-        simpleLightBox.refresh();
-        loadMoreBtn.show();
-    } catch (error) {
-        Notify.failure('Something is wrong');
+        Notify.success(`Hooray! We found ${totalHits} images.`); // оповещение с удавшегося запроса с текстом в котором указывается количесво найденных картинок по запросу 
+        refs.gallery.innerHTML = ''; // очищение инпута с помощью innerHTML после неудачного запроса
+        renderPictures(hits); // вызываем функцию создания галлереи с разметкой из картинок, которые пришли
+        simpleLightBox.refresh(); // используем библиотеку для галлереи, с методом, который уничтожает и снова использует библиотеку
+        loadMoreBtn.show(); // показываем кнопку Load more... после удачного запроса
+    } catch (error) { // если ловим ошибку то вылезает оповещение с ошибкой
+        Notify.failure('Something is wrong'); // оповещение ошибки от Notify с текстом
     }
 }
 
-function renderPictures(hits) {
-    const images = hits
-        .map(
+function renderPictures(hits) { // создаем функцию для создания разметки под галлерею из пришедших картинок
+    const images = hits // создаем переменную для картинок
+        .map( // создаем новый массив через map и  перебираем его свойства
             ({
-                webformatURL,
-                largeImageURL,
-                tags,
-                likes,
-                views,
-                comments,
-                downloads,
-            }) => {
-                return `<div class="photo-card">
+                webformatURL, // путь картинки
+                largeImageURL, // ссылка на большую картинку
+                tags, // теги описывающие картинку
+                likes, // кол-во лайков
+                views, // кол-во просмотров
+                comments, // кол-во комментариев
+                downloads, //кол-во загрузок
+            }) => { // возвращаем форму и подставляем свойства которые достали через map
+                return `<div class="photo-card"> 
                     <a href="${largeImageURL}"><img src="${webformatURL}" alt="${tags}" loading="lazy" /></a>
                     <div class="info">
                         <p class="info-item">
@@ -78,25 +78,25 @@ function renderPictures(hits) {
                     </div>
                 </div>`
             }
-    ).join('');
+    ).join(''); // соединяем элементы массива в строку
     
     
-    refs.gallery.insertAdjacentHTML('beforeend', images);
+    refs.gallery.insertAdjacentHTML('beforeend', images); // добавляем элементы строки с HTML тегами перед концом
 }
 
-async function onLoadMoreBtn() {
-    loadMoreBtn.loading();
-    try {
-        const { hits } = await newsApiService.fetchApi();
-        renderPictures(hits);
-        simpleLightBox.refresh();
-        loadMoreBtn.endLoading();
-        if (hits.length < 40) {
-            loadMoreBtn.hide();
-            Notify.info("We're sorry, but you've reached the end of search results.");
+async function onLoadMoreBtn() { // создаем ассинхронную функцию для кнопки  Load more...
+    loadMoreBtn.loading(); // добавляем видимость загрузки для пользователя
+    try {   // проверка на ошибку
+        const { hits } = await newsApiService.fetchApi(); // задакем переменную где выделяем картинки которые пришли и ждем пока выполнится загрузка картинок с сервера
+        renderPictures(hits); // создаем галлерею с разметкой с теми картинками которые пришли
+        simpleLightBox.refresh(); // используем библиотеку для галлереи, с методом, который уничтожает и снова использует библиотеку 
+        loadMoreBtn.endLoading(); // убираем видимость загрузки с кнопки
+        if (hits.length < 40) { // добавляем условие, если картинок осталось меньше 40, то вылетает оповещение о том что вы достигли конца поиска
+            loadMoreBtn.hide(); // кнопка Load more... пропадает
+            Notify.info("We're sorry, but you've reached the end of search results."); // оповещение информационное что достигли конца поиска
         }
-    } catch (error) {
-        Notify.failure('Something is wrong');
+    } catch (error) { // если ловим ошибку то вылетает оповещение с ошибкой
+        Notify.failure('Something is wrong'); // оповещение ошибки с текстом
     }
 }
     
